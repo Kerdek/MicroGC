@@ -82,4 +82,9 @@ gc::help();
 
 Call `cycle` directly at the end of your program to finalize any remaining cleanup.
 
+```cpp
+gc::cycle();
+} // end of main
+```
+
 Happy Coding!
