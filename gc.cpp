@@ -9,6 +9,13 @@
 
 namespace gc {
 
+struct field {
+size_t value;
+int type; };
+
+struct cell {
+std::unordered_map<size_t, field> p; };
+
 std::vector<cell *> full_range;
 std::unordered_multiset<cell *> live_range = [](){
   std::unordered_multiset<cell *> t;

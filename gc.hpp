@@ -2,16 +2,10 @@
 #define GCPP_GC_HPP
 
 #include <cstddef>
-#include <unordered_map>
 
 namespace gc {
 
-struct field {
-size_t value;
-int type; };
-
-struct cell {
-std::unordered_map<size_t, field> p; };
+struct cell;
 
 struct ptr {
 ptr();
