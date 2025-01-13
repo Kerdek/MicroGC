@@ -31,13 +31,13 @@ size_t fieldId = 1;
 int type = 1;
 size_t value = 42;
 
-gc::set_leaf(myCell, type, fieldId, value);
+set_leaf(myCell, type, fieldId, value);
 ```
 
 **Getting a Value**: Use `get_leaf` to retrieve the value stored in the cell. Accessing a field that does not exist will throw an exception.
 
 ```cpp
-size_t retrievedValue = gc::get_leaf(myCell, type, fieldId);
+size_t retrievedValue = get_leaf(myCell, type, fieldId);
 ```
 
 ## Setting Cleanup Functions
@@ -60,13 +60,13 @@ You can create pointers to other cells. Use `set_stem` and `get_stem` to manage 
 
 ```cpp
 gc::ptr anotherCell = gc::alloc();
-gc::set_stem(myCell, fieldId, anotherCell);
+set_stem(myCell, fieldId, anotherCell);
 ```
 
 **Getting a Pointer**: Retrieve the pointer from the first cell.
 
 ```cpp
-gc::ptr retrievedPointer = gc::get_stem(myCell, fieldId);
+gc::ptr retrievedPointer = get_stem(myCell, fieldId);
 ```
 
 ## The `help` Function
