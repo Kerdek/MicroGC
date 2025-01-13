@@ -29,17 +29,17 @@ ptr alloc();
 
 bool is_null(ptr const &p);
 
-bool has(ptr const &p, size_t f);
+bool has(ptr const &p, size_t field);
 
-ptr get_stem(ptr const &p, size_t f);
-void set_stem(ptr const &p, size_t f, ptr v);
+ptr get_stem(ptr const &p, size_t field);
+void set_stem(ptr const &p, size_t field, ptr value);
 
-size_t get_leaf(ptr const &p, size_t f);
-void set_leaf(ptr const &p, int type, size_t f, size_t v);
+size_t get_leaf(ptr const &p, size_t field);
+void set_leaf(ptr const &p, int type, size_t field, size_t value);
 
-void unset(ptr const &p, size_t f);
+void unset(ptr const &p, size_t field);
 
-void set_cleanup(int type, void (*)(size_t));
+void set_cleanup(int type, void (*cb)(size_t));
 
 void cycle();
 void help();

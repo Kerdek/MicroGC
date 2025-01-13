@@ -21,11 +21,11 @@ ptr::ptr(cell *i) : i(i) {
 if (i) {
   live_range.insert(i); } }
 
-ptr::ptr(ptr const &x): i(x.i) {
+ptr::ptr(ptr const &x) : i(x.i) {
 if (i) {
   live_range.insert(i); } }
 
-ptr::ptr(ptr &&x): i(x.i) {
+ptr::ptr(ptr &&x) : i(x.i) {
 x.i = 0; }
 
 ptr &ptr::operator=(ptr const &x) {
@@ -86,10 +86,10 @@ size_t get_leaf(ptr const &p, size_t f) {
 field &fe = p.i->p.at(f);
 return fe.value; }
 
-void set_leaf(ptr const &p, int type, size_t f, size_t v) {
+void set_leaf(ptr const &p, int t, size_t f, size_t v) {
 field &fe = p.i->p[f];
 clean(fe);
-fe.type = type;
+fe.type = t;
 fe.value = v; }
 
 void unset(ptr const &p, size_t f) {
