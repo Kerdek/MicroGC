@@ -1,5 +1,5 @@
-#ifndef GCPP_GC_HPP
-#define GCPP_GC_HPP
+#ifndef MICROGC_GC_HPP
+#define MICROGC_GC_HPP
 
 #include <cstddef>
 
