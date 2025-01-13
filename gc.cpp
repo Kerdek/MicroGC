@@ -129,7 +129,7 @@ s.max_load_factor(0.5);
 std::for_each(live_range.begin(), live_range.end(), [&s](cell *x) -> void {
   mark(s, x); });
 const auto pivot = std::partition(full_range.begin(), full_range.end(), [&s](cell *x) -> bool {
-return s.find(x) != s.end(); });
+  return s.find(x) != s.end(); });
 std::for_each(pivot, full_range.end(), sweep);
 full_range.erase(pivot, full_range.end()); }
 
