@@ -7,17 +7,17 @@ A simple stop-the-world mark-and-sweep garbage collector.
 Ensure that you have included the header file in your project.
 
 ```cpp
-#include "gc.hpp"
+#include "microgc/gc.hpp"
 ```
 
-Compile and link `gc.cpp` in your project.
+Compile and link `microgc/gc.cpp` in your project.
 
 ## Allocating Memory
 
 To allocate a new cell, use `alloc`. This function returns a `ptr`, which is a smart pointer to the newly created cell.
 
 ```cpp
-gc::cell *my_cell = gc::alloc();
+gc::ptr my_cell = gc::alloc();
 ```
 
 ## Setting and Getting Values
@@ -25,17 +25,12 @@ gc::cell *my_cell = gc::alloc();
 A cell is a vector of fields.
 A field has a value and a type.
 The type is used by the garbage collector to control cleanup.
-Use `set_type` and `set_value` to control the type and value of each field.
-Use `get_type` and `get_value` to read them back later.
-You must `resize` the cell before using the fields.
-`resize` preserves fields and does not perform cleanup.
 
 ```cpp
 resize(my_cell, 2);
-set_type(my_cell, 0, 0);
-set_value(my_cell, 0, 42);
+set_field(my_cell, 0, 0, 42);
 set_type(my_cell, 1, 1);
-set_value(my_cell, 1, reinterpret_cast<size_t>(malloc(16)));
+set_value(my_cell, 1, reinterpret_cast<gc::value>(malloc(16)));
 ```
 
 ## Setting Cleanup Functions
@@ -43,9 +38,9 @@ set_value(my_cell, 1, reinterpret_cast<size_t>(malloc(16)));
 You can define cleanup functions which will be called when a field is modified or unset or when the cell is being cleaned up. Use `set_cleanup` to specify a cleanup function for a particular type. The cleanup function takes a `size_t` parameter.
 
 ```cpp
-void cleanup_nop(size_t) { }
+void cleanup_nop(gc::value) { }
 
-void cleanup_free(size_t ptr) {
+void cleanup_free(gc::value ptr) {
   free(reinterpret_cast<void *>(ptr)); }
 
 gc::set_cleanup(0, cleanup_nop);
@@ -58,20 +53,18 @@ Cells can point to other cells.
 Use type `-1` to specify that a field contains a `cell *`.
 
 ```cpp
-gc::cell *another_cell = gc::alloc();
-resize(another_cell, )
-my_cell->fields.resize(1);
-my_cell->fields[0] = { .value = std::reinterpret_cast<size_t>(my_cell), .type = -1 };
+gc::ptr another_cell = gc::alloc();
+push_field(another_cell, -1, reinterpret_cast<gc::value>(another_cell));
 ```
 
 ## The `set_root` Function
 
-The `set_root` function controls the root node.
-`cycle` will clean up any resources which are not reachable from the root node.
+The `set_root` function controls the root pointer.
+Things reachable from the root pointer are preserved.
 
 ```cpp
 gc::set_root(my_cell);
-gc::help(); // things reachable from my_cell are preserved. `another_cell` could be freed.
+gc::help(); // `another_cell` could be freed.
 ```
 
 ## The `help` Function
