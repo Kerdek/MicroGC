@@ -14,7 +14,7 @@ Compile and link `microgc/gc.cpp` in your project.
 
 ## Allocating Memory
 
-To allocate a new cell, use `alloc`. This function returns a `ptr`, which is a smart pointer to the newly created cell.
+To allocate a new cell, use `alloc`. This function returns a `ptr`, which is a normal pointer to the newly created cell.
 
 ```cpp
 gc::ptr my_cell = gc::alloc();
