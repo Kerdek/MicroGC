@@ -2,146 +2,130 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <stack>
-#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 namespace gc {
 
-struct field {
-size_t value;
-int type; };
-
 struct cell {
-std::unordered_map<size_t, field> p; };
+size n, c;
+char *p; };
 
-std::vector<cell *> full_range;
-std::unordered_multiset<cell *> live_range = [](){
-  std::unordered_multiset<cell *> t;
-  t.max_load_factor(0.5);
-  return t; }();
-
-ptr::ptr() : i(0) {}
-
-ptr::ptr(cell *i) : i(i) {
-if (i) {
-  live_range.insert(i); } }
-
-ptr::ptr(ptr const &x) : i(x.i) {
-if (i) {
-  live_range.insert(i); } }
-
-ptr::ptr(ptr &&x) : i(x.i) {
-x.i = 0; }
-
-ptr &ptr::operator=(ptr const &x) {
-if (i) {
-  live_range.erase(live_range.find(i)); }
-i = x.i;
-if (i) {
-  live_range.insert(i); }
-return *this; }
-
-ptr &ptr::operator=(ptr &&x) {
-if (i) {
-  live_range.erase(live_range.find(i)); }
-i = x.i;
-x.i = 0;
-return *this; }
-
-ptr::~ptr() {
-if (i) {
-  live_range.erase(live_range.find(i)); } }
-
-ptr const null(0);
-
-std::vector<void (*)(size_t)> cleanups;
-
-void set_cleanup(int type, void (*f)(size_t)) {
-if (cleanups.size() < type) {
-  cleanups.resize(type); }
-cleanups[type - 1] = f; }
+static std::vector<ptr> range;
+static std::vector<void (*)(value)> cleanups;
+static ptr root;
+constexpr size field_size = sizeof(value) + sizeof(type);
 
 ptr alloc() {
-cell *const p = new cell{ .p = std::unordered_map<size_t, field>(0) };
-p->p.max_load_factor(0.5);
-full_range.push_back(p);
-return ptr(p); }
+ptr const p = new cell{ };
+p->n = 0;
+p->c = 0;
+p->p = 0;
+range.push_back(p);
+return p; }
 
-bool is_null(ptr const &p) {
-return !p.i; }
+void resize(ptr p, size n) {
+cell const old = *p;
+size const nmax = std::max(n, old.n);
+p->n = n;
+p->c = n;
+p->p = reinterpret_cast<char *>(malloc(p->c * field_size));
+if (old.p) {
+  memcpy(p->p, old.p, nmax * sizeof(value));
+  memcpy(p->p + p->c * sizeof(value), old.p + old.c * sizeof(value), nmax * sizeof(type));
+  free(old.p); } }
 
-bool has(ptr const &p, size_t f) {
-return p.i->p.find(f) != p.i->p.end(); }
+static void grow(ptr p) {
+cell const old = *p;
+p->c = p->c ? 2 * p->c : 2;
+p->p = reinterpret_cast<char *>(malloc(p->c * field_size));
+if (old.p) {
+  memcpy(p->p, old.p, p->n * sizeof(value));
+  memcpy(p->p + p->c * sizeof(value), old.p + old.c * sizeof(value), p->n * sizeof(type));
+  free(old.p); } }
 
-void clean(field fe) {
-if (fe.type > 0) {
-  cleanups[fe.type - 1](fe.value); } }
+size get_size(ptr p) {
+return p->n; }
 
-ptr get_stem(ptr const &p, size_t f) {
-field &fe = p.i->p.at(f);
-return ptr(reinterpret_cast<cell *>(fe.value)); }
+void push_field(ptr p, type t, value v) {
+if (p->c == p->n) {
+  grow(p); }
+set_field(p, p->n, t, v);
+p->n++; }
 
-void set_stem(ptr const &p, size_t f, ptr v) {
-field &fe = p.i->p[f];
-clean(fe);
-fe.type = 0;
-fe.value = reinterpret_cast<size_t>(v.i); }
+void pop_field(ptr p) {
+p->n--; }
 
-size_t get_leaf(ptr const &p, size_t f) {
-field &fe = p.i->p.at(f);
-return fe.value; }
+void set_field(ptr p, size i, type t, value v) {
+  set_type(p, i, t);
+  set_value(p, i, v); }
 
-void set_leaf(ptr const &p, int t, size_t f, size_t v) {
-field &fe = p.i->p[f];
-clean(fe);
-fe.type = t;
-fe.value = v; }
+void set_type(ptr p, size i, type t) {
+if (t > 2 && t != (type)-1) {
+  std::cerr << "hi";
+}
+*reinterpret_cast<type *>(p->p + p->c * sizeof(value) + i * sizeof(type)) = t; }
 
-void unset(ptr const &p, size_t f) {
-std::unordered_map<size_t, field> &x = p.i->p;
-auto const it = x.find(f);
-if (it != x.end()) {
-  x.erase(x.find(f)); } }
+void set_value(ptr p, size i, value v) {
+*reinterpret_cast<size_t *>(p->p + i * sizeof(value)) = v; }
 
-void mark(std::unordered_set<cell *> &s, cell *c) {
-std::stack<cell *> stack;
-stack.push(c);
-while (!stack.empty()) {
-  cell *current = stack.top();
-  stack.pop();
-  if (s.find(current) != s.end()) {
-    continue; }
-  s.insert(current);
-  for (const auto &[k, fe] : current->p) {
-    if (fe.type == 0 && fe.value) {
-      stack.push(reinterpret_cast<cell *>(fe.value)); } } } }
+type get_type(ptr p, size i) {
+return *reinterpret_cast<type *>(p->p + p->c * sizeof(value) + i * sizeof(type)); }
 
-void sweep(cell *c) {
-for (const auto [f, fe] : c->p) {
-  clean(fe); }
-delete c; }
+value get_value(ptr p, size_t i) {
+return *reinterpret_cast<size_t *>(p->p + i * sizeof(size_t)); }
+
+void set_root(ptr p) {
+root = p; }
+
+void set_cleanup(size type, void (*f)(value)) {
+if (cleanups.size() < type + 1) {
+  cleanups.resize(type + 1); }
+cleanups[type] = f; }
 
 void cycle() {
-std::unordered_set<cell *> s;
+std::unordered_set<ptr> s;
 s.max_load_factor(0.5);
-std::for_each(live_range.begin(), live_range.end(), [&s](cell *x) -> void {
-  mark(s, x); });
-const auto pivot = std::partition(full_range.begin(), full_range.end(), [&s](cell *x) -> bool {
-  return s.find(x) != s.end(); });
-std::for_each(pivot, full_range.end(), sweep);
-full_range.erase(pivot, full_range.end()); }
+if (root) {
+  std::stack<ptr> stack;
+  stack.push(root);
+  while (!stack.empty()) {
+    ptr p = stack.top();
+    stack.pop();
+    if (s.find(p) != s.end()) {
+      continue; }
+    s.insert(p);
+    for (size i = 0; i < p->n; i++) {
+      if (get_type(p, i) == (type)-1) {
+        value const v = get_value(p, i);
+        if (v) {
+          stack.push(reinterpret_cast<ptr>(v)); } } } } }
+const auto pivot = std::partition(range.begin(), range.end(), [&s](ptr p) -> bool {
+  auto const it = s.find(p);
+  if (it == s.end()) {
+    for (size i = 0; i < p->n; i++) {
+      type const t = get_type(p, i);
+      if (t != (type)-1) {
+        cleanups[t](get_value(p, i)); } }
+      if (p->p) {
+        free(p->p); }
+      delete p;
+    return false; }
+  else {
+    return true; } });
+range.erase(pivot, range.end()); }
 
-size_t const min_trigger = 16;
-size_t trigger = min_trigger;
+static size const min_trigger = 16;
+static size trigger = min_trigger;
 
 void help() {
-if (full_range.size() > trigger) {
+if (range.size() > trigger) {
   cycle();
-  if (full_range.size() > trigger / 2) {
+  if (range.size() > trigger / 2) {
     trigger *= 2; }
-  else if (full_range.size() < trigger / 4 && trigger > min_trigger) {
+  else if (range.size() < trigger / 4 && trigger > min_trigger) {
     trigger /= 2; } } }
 
 }

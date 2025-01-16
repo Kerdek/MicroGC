@@ -17,27 +17,25 @@ Compile and link `gc.cpp` in your project.
 To allocate a new cell, use `alloc`. This function returns a `ptr`, which is a smart pointer to the newly created cell.
 
 ```cpp
-gc::ptr myCell = gc::alloc();
+gc::cell *my_cell = gc::alloc();
 ```
 
 ## Setting and Getting Values
 
-You can set and get values in the cell using `set_leaf` and `get_leaf`.
-
-**Setting a Value**: Use `set_leaf` to store a value in the cell.
-
-```cpp
-size_t fieldId = 1;
-int type = 1;
-size_t value = 42;
-
-set_leaf(myCell, type, fieldId, value);
-```
-
-**Getting a Value**: Use `get_leaf` to retrieve the value stored in the cell. Accessing a field that does not exist will throw an exception.
+A cell is a vector of fields.
+A field has a value and a type.
+The type is used by the garbage collector to control cleanup.
+Use `set_type` and `set_value` to control the type and value of each field.
+Use `get_type` and `get_value` to read them back later.
+You must `resize` the cell before using the fields.
+`resize` preserves fields and does not perform cleanup.
 
 ```cpp
-size_t retrievedValue = get_leaf(myCell, type, fieldId);
+resize(my_cell, 2);
+set_type(my_cell, 0, 0);
+set_value(my_cell, 0, 42);
+set_type(my_cell, 1, 1);
+set_value(my_cell, 1, reinterpret_cast<size_t>(malloc(16)));
 ```
 
 ## Setting Cleanup Functions
@@ -45,33 +43,41 @@ size_t retrievedValue = get_leaf(myCell, type, fieldId);
 You can define cleanup functions which will be called when a field is modified or unset or when the cell is being cleaned up. Use `set_cleanup` to specify a cleanup function for a particular type. The cleanup function takes a `size_t` parameter.
 
 ```cpp
-void myCleanupFunction(size_t ptr) {
+void cleanup_nop(size_t) { }
+
+void cleanup_free(size_t ptr) {
   free(reinterpret_cast<void *>(ptr)); }
 
-// Set the cleanup function for type 2
-gc::set_cleanup(2, myCleanupFunction);
+gc::set_cleanup(0, cleanup_nop);
+gc::set_cleanup(1, cleanup_free);
 ```
 
 ## Working with Pointers
 
-You can create pointers to other cells. Use `set_stem` and `get_stem` to manage these pointers.
-
-**Setting a Pointer**: First, allocate another cell and set it as a pointer in the first cell. Any pointer or non-pointer which was previously in the field will be overwritten, and any resources which were managed will be freed.
+Cells can point to other cells.
+Use type `-1` to specify that a field contains a `cell *`.
 
 ```cpp
-gc::ptr anotherCell = gc::alloc();
-set_stem(myCell, fieldId, anotherCell);
+gc::cell *another_cell = gc::alloc();
+resize(another_cell, )
+my_cell->fields.resize(1);
+my_cell->fields[0] = { .value = std::reinterpret_cast<size_t>(my_cell), .type = -1 };
 ```
 
-**Getting a Pointer**: Retrieve the pointer from the first cell.
+## The `set_root` Function
+
+The `set_root` function controls the root node.
+`cycle` will clean up any resources which are not reachable from the root node.
 
 ```cpp
-gc::ptr retrievedPointer = get_stem(myCell, fieldId);
+gc::set_root(my_cell);
+gc::help(); // things reachable from my_cell are preserved. `another_cell` could be freed.
 ```
 
 ## The `help` Function
 
-The `help` function is for reclaiming memory. Trigger it frequently, whenever the garbage collector can perform cleanup operations.
+The `help` function is for reclaiming memory.
+Trigger it frequently, whenever the garbage collector can perform cleanup operations.
 
 ```cpp
 for(;;) { // evaluation loop
@@ -81,9 +87,11 @@ gc::help();
 ## The `cycle` Function
 
 Call `cycle` directly at the end of your program to finalize any remaining cleanup.
+Set the root to `nullptr` before the final call to `cycle`.
 
 ```cpp
-gc::cycle();
+gc::set_root(nullptr);
+gc::cycle(); // all cells are freed.
 } // end of main
 ```
 

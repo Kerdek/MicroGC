@@ -1,40 +1,27 @@
 #ifndef MICROGC_GC_HPP
 #define MICROGC_GC_HPP
 
-#include <cstddef>
-
 namespace gc {
 
 struct cell;
 
-struct ptr {
-ptr();
-ptr(cell *i);
-ptr(ptr const &);
-ptr(ptr &&);
-ptr &operator=(ptr const &);
-ptr &operator=(ptr &&);
-~ptr();
-cell *i; };
-
-extern ptr const null;
+using size = decltype(sizeof(0));
+using value = unsigned long;
+using type = unsigned char;
+using ptr = cell *;
 
 ptr alloc();
-
-bool is_null(ptr const &p);
-
-bool has(ptr const &p, size_t field);
-
-ptr get_stem(ptr const &p, size_t field);
-void set_stem(ptr const &p, size_t field, ptr value);
-
-size_t get_leaf(ptr const &p, size_t field);
-void set_leaf(ptr const &p, int type, size_t field, size_t value);
-
-void unset(ptr const &p, size_t field);
-
-void set_cleanup(int type, void (*cb)(size_t));
-
+void resize(ptr p, size n);
+size get_size(ptr p);
+void push_field(ptr p, type t, value v);
+void pop_field(ptr p);
+void set_field(ptr p, size i, type t, value v);
+void set_type(ptr p, size i, type t);
+void set_value(ptr p, size i, value v);
+type get_type(ptr p, size i);
+value get_value(ptr p, size i);
+void set_root(ptr p);
+void set_cleanup(size type, void (*cb)(value));
 void cycle();
 void help();
 
