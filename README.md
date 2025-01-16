@@ -59,12 +59,12 @@ push_field(another_cell, -1, reinterpret_cast<gc::value>(another_cell));
 
 ## The `set_root` Function
 
-The `set_root` function controls the root node.
-`cycle` will clean up any resources which are not reachable from the root node.
+The `set_root` function controls the root pointer.
+Things reachable from the root pointer are preserved.
 
 ```cpp
 gc::set_root(my_cell);
-gc::help(); // things reachable from my_cell are preserved. `another_cell` could be freed.
+gc::help(); // `another_cell` could be freed.
 ```
 
 ## The `help` Function
