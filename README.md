@@ -38,9 +38,9 @@ set_value(my_cell, 1, reinterpret_cast<gc::value>(malloc(16)));
 You can define cleanup functions which will be called when a field is modified or unset or when the cell is being cleaned up. Use `set_cleanup` to specify a cleanup function for a particular type. The cleanup function takes a `size_t` parameter.
 
 ```cpp
-void cleanup_nop(size_t) { }
+void cleanup_nop(gc::value) { }
 
-void cleanup_free(size_t ptr) {
+void cleanup_free(gc::value ptr) {
   free(reinterpret_cast<void *>(ptr)); }
 
 gc::set_cleanup(0, cleanup_nop);
