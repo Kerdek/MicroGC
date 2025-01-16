@@ -63,9 +63,6 @@ void set_field(ptr p, size i, type t, value v) {
   set_value(p, i, v); }
 
 void set_type(ptr p, size i, type t) {
-if (t > 2 && t != (type)-1) {
-  std::cerr << "hi";
-}
 *reinterpret_cast<type *>(p->p + p->c * sizeof(value) + i * sizeof(type)) = t; }
 
 void set_value(ptr p, size i, value v) {
