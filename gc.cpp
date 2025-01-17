@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cstring>
-#include <iostream>
 #include <stack>
 #include <unordered_set>
 #include <vector>
@@ -59,8 +58,8 @@ void pop_field(ptr p) {
 p->n--; }
 
 void set_field(ptr p, size i, type t, value v) {
-  set_type(p, i, t);
-  set_value(p, i, v); }
+set_type(p, i, t);
+set_value(p, i, v); }
 
 void set_type(ptr p, size i, type t) {
 *reinterpret_cast<type *>(p->p + p->c * sizeof(value) + i * sizeof(type)) = t; }
