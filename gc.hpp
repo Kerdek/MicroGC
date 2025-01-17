@@ -40,6 +40,8 @@ requires requires (gc::value x) {
   (T)x; }
 T get_value(ptr p, size i) {
 return (T)get_value(p, i); }
+inline gc::ptr get_ptr(ptr p, size i) {
+return get_ptr(p, i); }
 void set_root(ptr p);
 void set_cleanup(size type, void (*cb)(value));
 void cycle();
