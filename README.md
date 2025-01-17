@@ -41,7 +41,14 @@ Each field has a value and a type, which the garbage collector uses to manage cl
 resize(my_cell, 2);
 set_field(my_cell, 0, 0, 42);
 set_type(my_cell, 1, 1);
-set_value(my_cell, 1, reinterpret_cast<gc::value>(malloc(16)));
+set_value(my_cell, 1, malloc(16));
+```
+
+Getters and setters operate on values which can be c-style cast to `gc::value`.
+
+```cpp
+int x = get_value<int>(my_cell, 0);
+char const *p = get_value<char const *>(my_cell, 1);
 ```
 
 ## Setting Cleanup Functions
@@ -61,11 +68,17 @@ gc::set_cleanup(1, cleanup_free);
 ## Working with Pointers
 
 Cells can point to other cells.
-Use type `-1` to specify that a field contains a `gc::ptr`.
+Use type `-1` to specify that a field contains a `gc::ptr`, or just use the shorter version in the example.
 
 ```cpp
 gc::ptr another_cell = gc::alloc();
-push_field(another_cell, -1, reinterpret_cast<gc::value>(another_cell));
+push_field(another_cell, my_cell);
+```
+
+`get_ptr` is short for `get_value<gc::ptr>`.
+
+```cpp
+gc::ptr my_cell2 = get_ptr(another_cell, 0);
 ```
 
 ## The `gc::set_root` Function
