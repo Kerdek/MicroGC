@@ -65,13 +65,13 @@ void set_type(ptr p, size i, type t) {
 *reinterpret_cast<type *>(p->p + p->c * sizeof(value) + i * sizeof(type)) = t; }
 
 void set_value(ptr p, size i, value v) {
-*reinterpret_cast<size_t *>(p->p + i * sizeof(value)) = v; }
+*reinterpret_cast<value *>(p->p + i * sizeof(value)) = v; }
 
 type get_type(ptr p, size i) {
 return *reinterpret_cast<type *>(p->p + p->c * sizeof(value) + i * sizeof(type)); }
 
 value get_value(ptr p, size_t i) {
-return *reinterpret_cast<size_t *>(p->p + i * sizeof(size_t)); }
+return *reinterpret_cast<value *>(p->p + i * sizeof(value)); }
 
 void set_root(ptr p) {
 root = p; }
