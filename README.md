@@ -145,7 +145,7 @@ gc::cycle(); // all cells are freed.
 - `void cycle()`: Performs a garbage collection cycle.
 - `void help()`: Potentially erforms a garbage collection cycle depending on memory usage conditions.
 
-## Usage Examples from lcpp##
+## Usage Examples from lcpp
 
 ```cpp
 struct string { gc::ptr p; };
