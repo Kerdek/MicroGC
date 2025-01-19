@@ -13,6 +13,8 @@ A simple stop-the-world mark-and-sweep garbage collector.
 - [The `gc::set_root` Function](#the-gcset_root-function)
 - [The `gc::help` Function](#the-gchelp-function)
 - [The `gc::cycle` Function](#the-gccycle-function)
+- [API Reference](#api-reference)
+- [Usage Examples from lcpp](#usage-examples-from-lcpp)
 
 ## Setting Up
 
@@ -110,6 +112,82 @@ Set the root to `nullptr` before the final call to `gc::cycle`.
 gc::set_root(nullptr);
 gc::cycle(); // all cells are freed.
 } // end of main
+```
+
+## API Reference
+
+### Types
+
+- `ptr`: A pointer to a memory cell.
+- `size`: Represents the size of memory.
+- `value`: An unsigned long value.
+- `type`: An unsigned char representing the type of data.
+
+### Functions
+
+- `gc::ptr gc::alloc()`: Allocates a new memory cell with no capacity and returns a pointer to it.
+- `void resize(gc::ptr p, gc::size n)`: Change the size and capacity of `p` to `n`.
+- `gc::size get_size(gc::ptr p)`: Returns the size of `p`.
+- `void push_field(gc::ptr p, gc::type t, gc::value v)`: Pushes a field of type `t` and value `v` onto the end of `p`. Increases the capacity of the cell as necessary.
+- `template<typename T> void push_field(gc::ptr p, gc::type t, T v)`: Pushes a field of type `t` and value `v` onto the end of `p`. `v` is converted from `T` to a `gc::value` by a c-style cast.
+- `void push_field(gc::ptr, gc::ptr v)`: Pushes a field of type `-1` and value `v` onto the end of `p`.
+- `void pop_field(gc::ptr p)`: Pops the last field from the memory cell.
+- `void set_field(gc::ptr p, gc::size i, gc::type t, gc::value v)`: Sets the field at index `i` in `p` to type `t` and value `v`.
+- `template<typename T> void set_field(gc::ptr p, gc::size i, gc::type t, T v)`: Sets the field at index `i` in `p` to type `t` and value `v`. `v` is converted from `T` to a `gc::value` by a c-style cast.
+- `void set_field(gc::ptr p, gc::size i, gc::ptr v)`: Sets the field at index `i` in `p` to type `-1` and value `v`.
+- `void set_type(gc::ptr p, gc::size i, gc::type t)`: Sets the type of the field at index `i` in `p` to `t`.
+- `void set_value(gc::ptr p, gc::size i, gc::value v)`: Sets the value of the field at index `i` in `p` to `v`.
+- `template<typename T> void set_value(gc::ptr p, gc::size i, T v)`: Sets the value of the field at index `i` in `p` to `v`. `v` is converted from `T` to a `gc::value` by a c-style cast.
+- `gc::type get_type(gc::ptr p, gc::size i)`: Retrieves the type of the field at index `i` in `p`.
+- `gc::value get_value(gc::ptr p, gc::size i)`: Retrieves the value of the field at index `i` in `p`.
+- `template<typename T> T get_value(gc::ptr p, gc::size i)`: Retrieves the value of the field at index `i` in the memory cell. `v` is converted to `T` from `gc::value` by a c-style cast.
+- `void set_root(gc::ptr p)`: Sets the pointer `p` as the root for garbage collection.
+- `void set_cleanup(gc::size type, void (*cb)(value))`: Registers a cleanup callback for a specific type.
+- `void cycle()`: Performs a garbage collection cycle.
+- `void help()`: Potentially erforms a garbage collection cycle depending on memory usage conditions.
+
+## Usage Examples from lcpp##
+
+```cpp
+struct string { gc::ptr p; };
+
+string new_string(stringbuf buf, size_t begin, size_t end);
+
+stringbuf buf(string s);
+size_t begin(string s);
+size_t end(string s);
+
+std::string_view text(string s);
+```
+
+```cpp
+
+enum {
+k_buf,
+k_begin,
+k_end,
+k_max };
+
+string new_string(stringbuf buf, size_t begin, size_t end) {
+gc::ptr p = gc::alloc();
+resize(p, k_max);
+set_field(p, k_buf, buf.p);
+set_field<size_t>(p, k_begin, 0, begin);
+set_field<size_t>(p, k_end, 0, end);
+return { .p = p }; }
+
+stringbuf buf(string s) {
+return { .p = get_ptr(s.p, k_buf) }; }
+
+size_t begin(string s) {
+return get_value<size_t>(s.p, k_begin); }
+
+size_t end(string s) {
+return get_value<size_t>(s.p, k_end); }
+
+std::string_view text(string s) {
+char const *const p = data(buf(s));
+return { p + begin(s), p + end(s) }; }
 ```
 
 Happy Coding!
