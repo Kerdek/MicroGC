@@ -95,7 +95,7 @@ gc::help(); // `another_cell` could be freed.
 
 ## The `gc::help` Function
 
-The `gc::help` function is for reclaiming memory. In a typical interpreter, garbage collection (GC) cycles are triggered based on memory usage conditions, such as when the allocated memory exceeds a certain threshold or when the system detects that memory is becoming scarce. `gc::help` examines memory usage and initiates garbage collection if necessary. Any cells not reachable from the root will be eligible for reclamation, so all cells which are in use must be mounted somewhere at the point of the call to `gc::help`.
+The `gc::help` function is for reclaiming memory. In a typical interpreter, garbage collection cycles are triggered based on memory usage conditions, such as when the allocated memory exceeds a certain threshold or when the system detects that memory is becoming scarce. `gc::help` examines memory usage and initiates garbage collection if necessary. Any cells not reachable from the root will be eligible for reclamation, so all cells which are in use must be mounted somewhere at the point of the call to `gc::help`.
 
 ```cpp
 for(;;) { // evaluation loop
