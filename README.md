@@ -140,9 +140,9 @@ gc::cycle(); // all cells are freed.
 - `gc::value get_value(gc::ptr p, gc::size i)`: Retrieves the value of the field at index `i` in `p`.
 - `template<typename T> T get_value(gc::ptr p, gc::size i)`: Retrieves the value of the field at index `i` in the memory cell. `v` is converted to `T` from `gc::value` by a c-style cast.
 - `void set_root(gc::ptr p)`: Sets the pointer `p` as the root for garbage collection.
-- `void set_cleanup(gc::size type, void (*cb)(gc::value))`: Registers a cleanup callback for a specific type.
-- `void cycle()`: Performs a garbage collection cycle.
-- `void help()`: Potentially erforms a garbage collection cycle depending on memory usage conditions.
+- `void gc::set_cleanup(gc::size type, void (*cb)(gc::value))`: Registers a cleanup callback for a specific type.
+- `void gc::cycle()`: Performs a garbage collection cycle.
+- `void gc::help()`: Potentially erforms a garbage collection cycle depending on memory usage conditions.
 
 ## Usage Examples from lcpp
 
