@@ -1,7 +1,6 @@
 # MicroGC
 
-A simple stop-the-world mark-and-sweep garbage collector.
-
+A simple, precise, stop-the-world, tracing garbage collector.
 
 ## Table of Contents
 
