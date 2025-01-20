@@ -129,7 +129,7 @@ gc::cycle(); // all cells are freed.
 - `void push_field(gc::ptr p, gc::type t, gc::value v)`: Pushes a field of type `t` and value `v` onto the end of `p`. Increases the capacity of the cell as necessary.
 - `template<typename T> void push_field(gc::ptr p, gc::type t, T v)`: Pushes a field of type `t` and value `v` onto the end of `p`. `v` is converted from `T` to a `gc::value` by a c-style cast.
 - `void push_field(gc::ptr, gc::ptr v)`: Pushes a field of type `-1` and value `v` onto the end of `p`.
-- `void pop_field(gc::ptr p)`: Pops the last field from the memory cell.
+- `void pop_field(gc::ptr p)`: Pops the last field from `p`.
 - `void set_field(gc::ptr p, gc::size i, gc::type t, gc::value v)`: Sets the field at index `i` in `p` to type `t` and value `v`.
 - `template<typename T> void set_field(gc::ptr p, gc::size i, gc::type t, T v)`: Sets the field at index `i` in `p` to type `t` and value `v`. `v` is converted from `T` to a `gc::value` by a c-style cast.
 - `void set_field(gc::ptr p, gc::size i, gc::ptr v)`: Sets the field at index `i` in `p` to type `-1` and value `v`.
@@ -142,7 +142,7 @@ gc::cycle(); // all cells are freed.
 - `void set_root(gc::ptr p)`: Sets the pointer `p` as the root for garbage collection.
 - `void gc::set_cleanup(gc::size type, void (*cb)(gc::value))`: Registers a cleanup callback for a specific type.
 - `void gc::cycle()`: Performs a garbage collection cycle.
-- `void gc::help()`: Potentially erforms a garbage collection cycle depending on memory usage conditions.
+- `void gc::help()`: Potentially performs a garbage collection cycle depending on memory usage conditions.
 
 ## Usage Examples from lcpp
 
